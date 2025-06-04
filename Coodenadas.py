@@ -1,0 +1,143 @@
+ 
+"""
+Created on Thu May 29 20:36:09 2025
+
+@author: universo
+"""
+
+import tkinter as tk
+from tkinter import ttk
+
+ 
+def dd_to_dms():
+    try:
+        lat_dd = float(entry_lat_dd.get())
+        lon_dd = float(entry_lon_dd.get())
+        lat_dms = convert_single_dd_to_dms(lat_dd, is_lat=True)
+        lon_dms = convert_single_dd_to_dms(lon_dd, is_lat=False)
+        update_dms_entries(lat_dms, lon_dms)
+    except ValueError:
+        result_dd.set("Error en DD")
+
+ 
+def dms_to_dd():
+    try:
+        lat_deg = float(entry_lat_deg.get())
+        lat_min = float(entry_lat_min.get())
+        lat_sec = float(entry_lat_sec.get())
+        lat_dir = lat_hem.get()
+
+        lon_deg = float(entry_lon_deg.get())
+        lon_min = float(entry_lon_min.get())
+        lon_sec = float(entry_lon_sec.get())
+        lon_dir = lon_hem.get()
+
+        lat_dd = convert_single_dms_to_dd(lat_deg, lat_min, lat_sec, lat_dir)
+        lon_dd = convert_single_dms_to_dd(lon_deg, lon_min, lon_sec, lon_dir)
+
+        entry_lat_dd.delete(0, tk.END)
+        entry_lon_dd.delete(0, tk.END)
+        entry_lat_dd.insert(0, f"{lat_dd:.6f}")
+        entry_lon_dd.insert(0, f"{lon_dd:.6f}")
+    except ValueError:
+        result_dd.set("Error en DMS")
+
+def convert_single_dd_to_dms(dd, is_lat):
+    direction = ''
+    if is_lat:
+        direction = 'N' if dd >= 0 else 'S'
+    else:
+        direction = 'E' if dd >= 0 else 'W'
+    dd = abs(dd)
+    degrees = int(dd)
+    minutes_full = (dd - degrees) * 60
+    minutes = int(minutes_full)
+    seconds = round((minutes_full - minutes) * 60, 2)
+    return (degrees, minutes, seconds, direction)
+
+def convert_single_dms_to_dd(deg, min, sec, dir):
+    dd = deg + min / 60 + sec / 3600
+    if dir in ['S', 'W']:
+        dd *= -1
+    return dd
+
+def update_dms_entries(lat_dms, lon_dms):
+    entry_lat_deg.delete(0, tk.END)
+    entry_lat_min.delete(0, tk.END)
+    entry_lat_sec.delete(0, tk.END)
+    lat_hem.set(lat_dms[3])
+    entry_lat_deg.insert(0, lat_dms[0])
+    entry_lat_min.insert(0, lat_dms[1])
+    entry_lat_sec.insert(0, lat_dms[2])
+
+    entry_lon_deg.delete(0, tk.END)
+    entry_lon_min.delete(0, tk.END)
+    entry_lon_sec.delete(0, tk.END)
+    lon_hem.set(lon_dms[3])
+    entry_lon_deg.insert(0, lon_dms[0])
+    entry_lon_min.insert(0, lon_dms[1])
+    entry_lon_sec.insert(0, lon_dms[2])
+
+ 
+root = tk.Tk()
+root.title("Conversor de Coordenadas UNAH SIG")
+root.configure(bg='black')
+root.geometry("370x350")  # Tamaño de ventana principal
+
+style = ttk.Style() 
+style.configure("TLabel", background='black', foreground='blue')
+style.configure("TButton", background='black', foreground='white')
+
+# Títulos en la interfaz grafica!
+ttk.Label(root, text="CONVERSOR DE COORDENADAS UNAH", font=('Arial', 14, 'bold')).grid(row=0, column=0, columnspan=6, pady=10)
+ttk.Label(root, text="FACULDAD DE CIENCIAS ESPACIALES", font=('Arial', 12, 'bold')).grid(row=1, column=0, columnspan=6, pady=(0, 5))
+ttk.Label(root, text="Grados Decimales", font=('Arial', 12, 'bold')).grid(row=2, column=0, columnspan=6, pady=(0, 10))
+
+# la venta de Grados Decimales poder colocar!
+ttk.Label(root, text="Latitud:").grid(row=3, column=0)
+entry_lat_dd = ttk.Entry(root, width=20)
+entry_lat_dd.grid(row=3, column=1, columnspan=2)
+
+ttk.Label(root, text="Longitud:").grid(row=4, column=0)
+entry_lon_dd = ttk.Entry(root, width=20)
+entry_lon_dd.grid(row=4, column=1, columnspan=2)
+
+tk.Button(root, text="Convertir DD a DMS", command=dd_to_dms,
+          bg='green', fg='black', activebackground='darkgreen').grid(row=5, column=0, columnspan=6, pady=10)
+
+
+# Título DMS
+ttk.Label(root, text="Grados, Minutos, Segundos", font=('Arial', 12, 'bold')).grid(row=6, column=0, columnspan=6, pady=(10, 10))
+
+#ventana de  Grados Minutos Segundos
+ttk.Label(root, text="Latitud:").grid(row=7, column=0)
+entry_lat_deg = ttk.Entry(root, width=5)
+entry_lat_deg.grid(row=7, column=1)
+entry_lat_min = ttk.Entry(root, width=5)
+entry_lat_min.grid(row=7, column=2)
+entry_lat_sec = ttk.Entry(root, width=5)
+entry_lat_sec.grid(row=7, column=3)
+lat_hem = tk.StringVar(value='N')
+lat_dropdown = ttk.Combobox(root, textvariable=lat_hem, values=['N', 'S'], width=3)
+lat_dropdown.grid(row=7, column=4)
+
+ttk.Label(root, text="Longitud:").grid(row=8, column=0)
+entry_lon_deg = ttk.Entry(root, width=5)
+entry_lon_deg.grid(row=8, column=1)
+entry_lon_min = ttk.Entry(root, width=5)
+entry_lon_min.grid(row=8, column=2)
+entry_lon_sec = ttk.Entry(root, width=5)
+entry_lon_sec.grid(row=8, column=3)
+lon_hem = tk.StringVar(value='W')
+lon_dropdown = ttk.Combobox(root, textvariable=lon_hem, values=['E', 'W'], width=3)
+lon_dropdown.grid(row=8, column=4)
+
+tk.Button(root, text="Convertir DMS a DD", command=dms_to_dd,
+          bg='green', fg='black', activebackground='darkgreen').grid(row=9, column=0, columnspan=6, pady=10)
+
+
+#la vemtana que los arroja los Resultado!
+result_dd = tk.StringVar()
+ttk.Label(root, textvariable=result_dd).grid(row=10, column=0, columnspan=6)
+
+root.mainloop()
